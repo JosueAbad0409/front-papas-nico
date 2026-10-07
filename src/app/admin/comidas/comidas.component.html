@@ -1,0 +1,141 @@
+<header class="page-heading">
+  <div>
+    <p class="eyebrow">CATÁLOGO</p>
+    <h1>Menú de comidas</h1>
+    <p>Los platos que vendes, con su foto y precio actual.</p>
+  </div>
+
+  <button
+    class="primary"
+    [disabled]="ocupado()"
+    (click)="abrir()"
+  >
+    ＋ Nueva comida
+  </button>
+</header>
+
+<div class="toolbar">
+  <input
+    aria-label="Buscar comida"
+    placeholder="Buscar una comida…"
+    [ngModel]="buscar()"
+    (ngModelChange)="buscar.set($event)"
+  >
+
+  <button
+    [disabled]="cargando() || ocupado()"
+    (click)="cargar()"
+  >
+    Actualizar
+  </button>
+</div>
+
+@if (cargando()) {
+  <p class="empty" role="status">Cargando menú…</p>
+} @else {
+  <div class="cards">
+    @for (c of visibles(); track c.id) {
+      <article class="food-card">
+        <app-foto [src]="c.foto_url" [nombre]="c.nombre" />
+
+        <div class="food-body">
+          <h2>{{ c.nombre }}</h2>
+
+          <strong class="price">
+            {{ c.precio | currency:'USD':'symbol':'1.2-2' }}
+          </strong>
+
+          <div class="actions">
+            <button [disabled]="ocupado()" (click)="abrir(c)">
+              Editar
+            </button>
+
+            <button
+              class="danger-text"
+              [disabled]="ocupado()"
+              (click)="eliminar(c)"
+            >
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </article>
+    } @empty {
+      <p class="empty">
+        No hay comidas para mostrar. Crea la primera para comenzar a vender.
+      </p>
+    }
+  </div>
+}
+
+@if (modal()) {
+  <app-modal
+    [titulo]="id === null ? 'Nueva comida' : 'Editar comida'"
+    [ocupado]="ocupado()"
+    (cerrado)="cerrar()"
+  >
+    <form [formGroup]="form" (ngSubmit)="guardar()">
+      <fieldset [disabled]="ocupado()">
+        <label>
+          Nombre
+          <input
+            formControlName="nombre"
+            maxlength="255"
+            placeholder="Ej. Papi pollo"
+          >
+        </label>
+
+        <label>
+          Precio de venta (USD)
+          <input
+            type="number"
+            formControlName="precio"
+            min="0.01"
+            step="0.01"
+          >
+        </label>
+
+        <label>
+          Fotografía
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            (change)="foto($event)"
+          >
+        </label>
+
+        <p class="muted">
+          JPG, PNG o WebP · máximo 5 MB.
+          Al editar, conserva la foto si no eliges otra.
+        </p>
+
+        @if (preview) {
+          <div class="preview">
+            <app-foto
+              [src]="preview"
+              [nombre]="form.controls.nombre.value"
+            />
+          </div>
+        }
+
+        @if (form.invalid && form.touched) {
+          <p class="error">
+            Escribe un nombre y un precio mayor a cero,
+            con máximo dos decimales.
+          </p>
+        }
+
+        <footer class="actions">
+          <button type="button" (click)="cerrar()">Cancelar</button>
+
+          <button
+            class="primary"
+            [disabled]="form.invalid || ocupado()"
+          >
+            {{ ocupado() ? 'Guardando…' : 'Guardar comida' }}
+          </button>
+        </footer>
+      </fieldset>
+    </form>
+  </app-modal>
+}

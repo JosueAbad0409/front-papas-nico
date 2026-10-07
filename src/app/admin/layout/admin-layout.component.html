@@ -1,0 +1,65 @@
+<div class="shell">
+  <aside class="sidebar" [class.open]="abierto()">
+    <a
+      class="brand"
+      routerLink="/admin/dashboard"
+      (click)="abierto.set(false)"
+    >
+      <span><img src="./public/logonico.png" alt=""></span>
+      <span>
+        PAPAS NICO
+        <small>CONTROL DEL NEGOCIO</small>
+      </span>
+    </a>
+
+    <p class="nav-caption">TU NEGOCIO</p>
+
+    <nav aria-label="Navegación principal">
+      @for (link of links; track link.ruta) {
+        <a
+          [routerLink]="['/admin', link.ruta]"
+          routerLinkActive="active"
+          ariaCurrentWhenActive="page"
+          (click)="abierto.set(false)"
+        >
+          <span aria-hidden="true">{{ link.icono }}</span>
+          {{ link.nombre }}
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-note">
+      Hecho para el día a día.
+      <small>Ventas claras. Compras en orden.</small>
+    </div>
+  </aside>
+
+  @if (abierto()) {
+    <button
+      class="nav-shade"
+      aria-label="Cerrar navegación"
+      (click)="abierto.set(false)"
+    ></button>
+  }
+
+  <div class="workspace">
+    <header class="topbar">
+      <button
+        class="menu-toggle"
+        type="button"
+        aria-label="Abrir navegación"
+        [attr.aria-expanded]="abierto()"
+        (click)="abierto.update(v => !v)"
+      >
+        ☰
+      </button>
+
+      <span>Administración</span>
+      <span class="zone">Ecuador · USD</span>
+    </header>
+
+    <main>
+      <router-outlet />
+    </main>
+  </div>
+</div>

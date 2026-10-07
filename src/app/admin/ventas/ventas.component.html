@@ -1,0 +1,288 @@
+<header class="page-heading">
+  <div>
+    <p class="eyebrow">PUNTO DE VENTA</p>
+    <h1>Vamos a vender</h1>
+    <p>Selecciona las comidas y guarda cada operación por separado.</p>
+  </div>
+
+  <button [disabled]="ocupado()" (click)="nueva()">
+    ＋ Nueva operación
+  </button>
+</header>
+
+<div class="pos-grid">
+  <section>
+    <div class="toolbar">
+      <input
+        placeholder="Buscar una comida…"
+        aria-label="Buscar una comida"
+        [ngModel]="buscar()"
+        (ngModelChange)="buscar.set($event)"
+      >
+
+      <button
+        [disabled]="cargandoMenu() || ocupado()"
+        (click)="cargarMenu()"
+      >
+        Actualizar menú
+      </button>
+    </div>
+
+    @if (cargandoMenu()) {
+      <p class="empty" role="status">Cargando comidas…</p>
+    } @else {
+      <div class="cards pos-cards">
+        @for (c of visibles(); track c.id) {
+          <button
+            class="food-card food-select"
+            [disabled]="ocupado()"
+            (click)="agregar(c)"
+          >
+            <app-foto [src]="c.foto_url" [nombre]="c.nombre" />
+
+            <span class="food-body">
+              <strong>{{ c.nombre }}</strong>
+              <span class="price">{{ c.precio | currency:'USD' }}</span>
+              <span class="muted">＋ Agregar</span>
+            </span>
+          </button>
+        } @empty {
+          <p class="empty">
+            No hay comidas disponibles.
+            Regístralas en Menú de comidas.
+          </p>
+        }
+      </div>
+    }
+  </section>
+
+  <form
+    class="panel cart"
+    #ventaForm="ngForm"
+    (ngSubmit)="guardar()"
+  >
+    <h2>
+      {{ editando() === null ? 'Nueva venta' : 'Editar venta #' + editando() }}
+    </h2>
+
+    <fieldset [disabled]="ocupado()">
+      <label>
+        Fecha y hora · Ecuador
+        <input
+          name="fecha"
+          type="datetime-local"
+          [(ngModel)]="fecha"
+          required
+        >
+      </label>
+
+      @for (x of lineas(); track x.comidaId) {
+        <div class="cart-line">
+          <div>
+            <strong>{{ x.nombre }}</strong>
+            <small>{{ x.precio | currency:'USD' }} por unidad</small>
+          </div>
+
+          <div class="quantity">
+            <button
+              type="button"
+              [disabled]="x.cantidad <= 1"
+              [attr.aria-label]="'Disminuir ' + x.nombre"
+              (click)="cantidad(x.comidaId, x.cantidad - 1)"
+            >
+              −
+            </button>
+
+            <input
+              type="number"
+              [name]="'cantidad-' + x.comidaId"
+              [ngModel]="x.cantidad"
+              (ngModelChange)="cantidad(x.comidaId, $event)"
+              min="1"
+              max="1000000"
+              step="1"
+              required
+              [attr.aria-label]="'Cantidad de ' + x.nombre"
+            >
+
+            <button
+              type="button"
+              [attr.aria-label]="'Aumentar ' + x.nombre"
+              (click)="cantidad(x.comidaId, x.cantidad + 1)"
+            >
+              ＋
+            </button>
+          </div>
+
+          <button
+            type="button"
+            class="danger-text"
+            (click)="quitar(x.comidaId)"
+          >
+            Quitar
+          </button>
+        </div>
+      } @empty {
+        <p class="empty">
+          Tu venta está vacía. Elige una comida para comenzar.
+        </p>
+      }
+
+      <div class="cart-total">
+        <span>
+          {{ unidades() }} unidades
+          <br>
+          <small>Total estimado</small>
+        </span>
+
+        <strong>{{ total() | currency:'USD' }}</strong>
+      </div>
+
+      <p class="muted">
+        El total definitivo lo confirma el servidor.
+        Al editar se conservan los precios originales.
+      </p>
+
+      <button
+        class="primary full"
+        [disabled]="ocupado() || !lineas().length || ventaForm.invalid"
+      >
+        {{
+          ocupado()
+            ? 'Guardando…'
+            : editando() === null
+              ? 'Guardar venta'
+              : 'Guardar cambios'
+        }}
+      </button>
+
+      @if (editando() !== null) {
+        <button type="button" class="full" (click)="nueva()">
+          Cancelar edición
+        </button>
+      }
+    </fieldset>
+  </form>
+</div>
+
+<section class="panel history">
+  <div class="section-heading">
+    <h2>Historial de ventas</h2>
+    <span class="badge">{{ ventas().length }} operaciones</span>
+  </div>
+
+  <app-periodo
+    [ocupado]="cargando() || ocupado()"
+    (cambio)="cargar($event)"
+  />
+
+  <p class="muted">
+    Período consultado: {{ periodo.desde }} al {{ periodo.hasta }}
+  </p>
+
+  @if (cargando()) {
+    <p class="empty" role="status">Consultando ventas…</p>
+  } @else {
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Operación</th>
+            <th>Fecha y hora</th>
+            <th>Unidades</th>
+            <th>Total</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (v of ventas(); track v.id) {
+            <tr>
+              <td>#{{ v.id }}</td>
+              <td>{{ mostrarFecha(v.fechaCompra) }}</td>
+              <td>{{ contar(v) }}</td>
+              <td>{{ v.total | currency:'USD' }}</td>
+
+              <td>
+                <div class="actions">
+                  <button
+                    [disabled]="ocupado()"
+                    (click)="detalle.set(v)"
+                  >
+                    Ver
+                  </button>
+
+                  <button
+                    [disabled]="ocupado()"
+                    (click)="editar(v)"
+                  >
+                    Editar
+                  </button>
+
+                  <button
+                    class="danger-text"
+                    [disabled]="ocupado()"
+                    (click)="eliminar(v)"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5">No hay ventas en este período.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+@if (detalle(); as v) {
+  <app-modal
+    [titulo]="'Venta #' + v.id"
+    (cerrado)="detalle.set(null)"
+  >
+    <p>{{ mostrarFecha(v.fechaCompra) }}</p>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Comida</th>
+            <th>Cantidad</th>
+            <th>Precio</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (d of v.detalles; track d.id) {
+            <tr>
+              <td>{{ d.nombreComida }}</td>
+              <td>{{ d.cantidad }}</td>
+              <td>
+                {{
+                  d.precioUnitario === null
+                    ? 'Desconocido'
+                    : (d.precioUnitario | currency:'USD')
+                }}
+              </td>
+              <td>
+                {{
+                  d.subtotal === null
+                    ? 'Desconocido'
+                    : (d.subtotal | currency:'USD')
+                }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <p class="detail-total">Total: {{ v.total | currency:'USD' }}</p>
+  </app-modal>
+}

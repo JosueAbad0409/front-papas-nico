@@ -1,0 +1,244 @@
+<header class="page-heading">
+  <div>
+    <p class="eyebrow">ABASTECIMIENTO</p>
+    <h1>Compras de materia prima</h1>
+    <p>Registra lo que compraste y lo que realmente pagaste.</p>
+  </div>
+
+  <button
+    class="primary"
+    [disabled]="ocupado()"
+    (click)="abrir()"
+  >
+    ＋ Nueva compra
+  </button>
+</header>
+
+<section class="panel">
+  <app-periodo
+    [ocupado]="cargando() || ocupado()"
+    (cambio)="cargar($event)"
+  />
+
+  <p class="muted">
+    Período consultado: {{ periodo.desde }} al {{ periodo.hasta }}
+  </p>
+
+  @if (cargando()) {
+    <p class="empty" role="status">Consultando compras…</p>
+  } @else {
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Compra</th>
+            <th>Fecha y hora</th>
+            <th>Líneas</th>
+            <th>Pagado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (c of compras(); track c.id) {
+            <tr>
+              <td>#{{ c.id }}</td>
+              <td>{{ mostrarFecha(c.fechaCompra) }}</td>
+              <td>{{ c.detalles.length }}</td>
+              <td>{{ c.total | currency:'USD' }}</td>
+
+              <td>
+                <div class="actions">
+                  <button
+                    [disabled]="ocupado()"
+                    (click)="detalle.set(c)"
+                  >
+                    Ver
+                  </button>
+
+                  <button
+                    [disabled]="ocupado()"
+                    (click)="abrir(c)"
+                  >
+                    Editar
+                  </button>
+
+                  <button
+                    class="danger-text"
+                    [disabled]="ocupado()"
+                    (click)="eliminar(c)"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5">No hay compras en este período.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+@if (modal()) {
+  <app-modal
+    [titulo]="id === null ? 'Nueva compra' : 'Editar compra #' + id"
+    [ocupado]="ocupado()"
+    (cerrado)="modal.set(false)"
+  >
+    <form [formGroup]="form" (ngSubmit)="guardar()">
+      <fieldset [disabled]="ocupado()">
+        <label>
+          Fecha y hora · Ecuador
+          <input type="datetime-local" formControlName="fecha">
+        </label>
+
+        <p class="notice">
+          Importe pagado = total de esa línea.
+          Ejemplo: 1.5 quintales de papas por $25.40 en total.
+        </p>
+
+        <div formArrayName="detalles">
+          @for (grupo of lineas.controls; track grupo; let i = $index) {
+            <div class="purchase-line" [formGroupName]="i">
+              <div class="section-heading">
+                <h3>Insumo {{ i + 1 }}</h3>
+
+                <button
+                  type="button"
+                  class="danger-text"
+                  [disabled]="lineas.length === 1"
+                  (click)="quitar(i)"
+                >
+                  Quitar
+                </button>
+              </div>
+
+              <label>
+                Materia prima
+                <select formControlName="materiaPrimaId">
+                  <option [ngValue]="0">Selecciona un insumo</option>
+
+                  @for (m of materias(); track m.id) {
+                    <option [ngValue]="m.id">{{ m.nombre }}</option>
+                  }
+                </select>
+              </label>
+
+              <div class="form-grid">
+                <label>
+                  Cantidad
+                  <input
+                    type="number"
+                    formControlName="cantidad"
+                    min="0.001"
+                    step="0.001"
+                  >
+                </label>
+
+                <label>
+                  Unidad
+                  <input
+                    formControlName="unidad"
+                    maxlength="40"
+                    placeholder="quintal, galón, libra…"
+                  >
+                </label>
+
+                <label>
+                  Importe pagado (USD)
+                  <input
+                    type="number"
+                    formControlName="importePagado"
+                    min="0"
+                    step="0.01"
+                  >
+                </label>
+              </div>
+            </div>
+          }
+        </div>
+
+        <button
+          type="button"
+          [disabled]="lineas.length >= 200"
+          (click)="agregar()"
+        >
+          ＋ Agregar insumo
+        </button>
+
+        @if (form.invalid && form.touched) {
+          <p class="error">
+            Revisa los insumos, cantidades positivas, unidades e importes.
+            Cantidad: hasta 3 decimales. Dinero: hasta 2.
+          </p>
+        }
+
+        <div class="cart-total">
+          <span>Total pagado</span>
+          <strong>{{ total() | currency:'USD' }}</strong>
+        </div>
+
+        <footer class="actions">
+          <button type="button" (click)="modal.set(false)">
+            Cancelar
+          </button>
+
+          <button
+            class="primary"
+            [disabled]="form.invalid || ocupado()"
+          >
+            {{ ocupado() ? 'Guardando…' : 'Guardar compra' }}
+          </button>
+        </footer>
+      </fieldset>
+    </form>
+  </app-modal>
+}
+
+@if (detalle(); as c) {
+  <app-modal
+    [titulo]="'Compra #' + c.id"
+    (cerrado)="detalle.set(null)"
+  >
+    <p>{{ mostrarFecha(c.fechaCompra) }}</p>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Insumo</th>
+            <th>Cantidad</th>
+            <th>Unidad</th>
+            <th>Pagado</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (d of c.detalles; track d.id) {
+            <tr>
+              <td>{{ d.nombreMateriaPrima }}</td>
+              <td>{{ d.cantidad }}</td>
+              <td>{{ d.unidad ?? 'Desconocida' }}</td>
+              <td>
+                {{
+                  d.importePagado === null
+                    ? 'Desconocido'
+                    : (d.importePagado | currency:'USD')
+                }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <p class="detail-total">
+      Total: {{ c.total | currency:'USD' }}
+    </p>
+  </app-modal>
+}

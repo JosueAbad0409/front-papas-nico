@@ -1,0 +1,147 @@
+<header class="page-heading">
+  <div>
+    <p class="eyebrow">TU NEGOCIO, DE UN VISTAZO</p>
+    <h1>Dashboard</h1>
+    <p>Conoce cuánto vendiste y cuánto compraste.</p>
+  </div>
+
+  <a class="button primary" routerLink="/admin/ventas">
+    ＋ Registrar venta
+  </a>
+</header>
+
+<app-periodo
+  [ocupado]="cargando()"
+  (cambio)="cargar($event)"
+/>
+
+@if (cargando()) {
+  <p class="empty" role="status">Preparando tu resumen…</p>
+} @else if (reporte(); as r) {
+  <p class="period-caption">
+    {{ r.desde }} — {{ r.hasta }} · America/Guayaquil
+  </p>
+
+  <div class="stats">
+    <article class="stat featured">
+      <span>Dinero vendido</span>
+      <strong>{{ r.totalVendido | currency:'USD' }}</strong>
+      <small>Ingresos por ventas</small>
+    </article>
+
+    <article class="stat">
+      <span>Compras de materia prima</span>
+      <strong>{{ r.totalCompras | currency:'USD' }}</strong>
+      <small>Importes registrados</small>
+    </article>
+
+    <article class="stat">
+      <span>Balance del período</span>
+      <strong [class.negative]="r.balance < 0">
+        {{ r.balance | currency:'USD' }}
+      </strong>
+      <small>Ventas menos compras</small>
+    </article>
+
+    <article class="stat">
+      <span>Operaciones de venta</span>
+      <strong>{{ r.operacionesVenta }}</strong>
+      <small>{{ r.unidadesVendidas }} unidades vendidas</small>
+    </article>
+  </div>
+
+  <p class="notice">
+    Este balance no es ganancia neta: no descuenta otros gastos
+    ni calcula el costo de ingredientes consumidos.
+  </p>
+
+  @if (advertencias()) {
+    <p class="notice warning">
+      Hay registros históricos incompletos.
+      Los que no tienen fecha quedan fuera del período;
+      algunos importes originales pueden requerir revisión.
+    </p>
+  }
+
+  <div class="dashboard-grid">
+    <section class="panel">
+      <div class="section-heading">
+        <h2>Comidas más vendidas</h2>
+        <span class="badge">Unidades</span>
+      </div>
+
+      @for (p of r.productosMasVendidos; track p.comidaId) {
+        <div class="ranking">
+          <div>
+            <span>{{ p.nombre }}</span>
+            <strong>{{ p.unidades }}</strong>
+          </div>
+
+          <div class="bar-track" aria-hidden="true">
+            <div [style.width.%]="p.unidades / maximo() * 100"></div>
+          </div>
+        </div>
+      } @empty {
+        <p class="empty">Todavía no hay ventas en este período.</p>
+      }
+    </section>
+
+    <section class="panel">
+      <p class="eyebrow">DÍAS DESTACADOS</p>
+
+      <h2>Más unidades vendidas</h2>
+      <p class="peak">
+        {{ r.diasMasUnidades.join(' · ') || 'Sin ventas' }}
+      </p>
+
+      <hr>
+
+      <h2>Mayores ingresos</h2>
+      <p class="peak">
+        {{ r.diasMayoresIngresos.join(' · ') || 'Sin ingresos' }}
+      </p>
+
+      <p class="muted">
+        Si hay empate, se muestran todos los días.
+      </p>
+    </section>
+  </div>
+
+  <section class="panel history">
+    <h2>Resumen por día</h2>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Operaciones</th>
+            <th>Unidades</th>
+            <th>Ventas</th>
+            <th>Compras</th>
+            <th>Balance</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (d of r.resumenPorDia; track d.fecha) {
+            <tr>
+              <td>{{ d.fecha }}</td>
+              <td>{{ d.operaciones }}</td>
+              <td>{{ d.unidades }}</td>
+              <td>{{ d.vendido | currency:'USD' }}</td>
+              <td>{{ d.compras | currency:'USD' }}</td>
+              <td [class.negative]="d.balance < 0">
+                {{ d.balance | currency:'USD' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+} @else {
+  <p class="empty">
+    No se pudo cargar el resumen. Puedes volver a consultar.
+  </p>
+}
