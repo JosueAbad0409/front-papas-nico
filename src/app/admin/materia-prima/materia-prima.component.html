@@ -27,7 +27,8 @@
   </div>
 
   <p class="muted">
-    La cantidad, unidad y lo que pagaste se registran en Compras.
+    Guarda aquí el precio de referencia. La cantidad, unidad y el importe
+    realmente pagado se registran en Compras y son los que suman en los reportes.
   </p>
 
   @if (cargando()) {
@@ -38,6 +39,7 @@
         <thead>
           <tr>
             <th>Insumo</th>
+            <th>Precio de referencia</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -46,6 +48,7 @@
           @for (m of materias(); track m.id) {
             <tr>
               <td>{{ m.nombre }}</td>
+              <td>{{ m.precio === null ? 'Sin precio' : (m.precio | currency:'USD') }}</td>
 
               <td>
                 <div class="actions">
@@ -68,7 +71,7 @@
             </tr>
           } @empty {
             <tr>
-              <td colspan="2">
+              <td colspan="3">
                 Todavía no hay insumos registrados.
               </td>
             </tr>
@@ -95,6 +98,27 @@
             placeholder="Ej. Papas"
           >
         </label>
+
+        <label>
+          Precio de referencia (USD, opcional)
+          <input
+            type="number"
+            formControlName="precio"
+            min="0"
+            max="999999999999.99"
+            step="0.01"
+            placeholder="Ej. 25.40"
+            aria-describedby="ayuda-precio"
+          >
+        </label>
+        <p id="ayuda-precio" class="muted">
+          Ejemplo: Papas (quintal), $25.40. Puedes indicar la presentación
+          en el nombre. Cambiar este precio no modifica compras anteriores.
+          Deja el campo vacío si todavía no conoces el precio.
+        </p>
+        @if (form.controls.precio.invalid && form.controls.precio.touched) {
+          <p class="error">Ingresa un precio entre 0 y 999999999999.99, con máximo 2 decimales.</p>
+        }
 
         <footer class="actions">
           <button type="button" (click)="modal.set(false)">
