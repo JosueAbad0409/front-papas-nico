@@ -133,6 +133,13 @@ hr {
   font-size: 17px;
   padding: 0 6px;
 }
+.brand img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 
 .brand small {
   font-size: 8px;
