@@ -124,10 +124,17 @@
                   <option [ngValue]="0">Selecciona un insumo</option>
 
                   @for (m of materias(); track m.id) {
-                    <option [ngValue]="m.id">{{ m.nombre }}</option>
+                    <option [ngValue]="m.id">
+                      {{ m.nombre }} · {{ m.precio === null ? 'Sin precio de referencia' : 'Ref. ' + (m.precio | currency:'USD') }}
+                    </option>
                   }
                 </select>
               </label>
+
+              <p class="muted">
+                El precio de referencia es orientativo. Verifica la presentación
+                y registra abajo el importe total que pagaste por esta línea.
+              </p>
 
               <div class="form-grid">
                 <label>

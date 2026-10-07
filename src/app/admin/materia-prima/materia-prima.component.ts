@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
+import { CurrencyPipe } from '@angular/common';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -11,7 +12,7 @@ import { ModalComponent } from '../../shared/modal/modal.component';
 
 @Component({
   selector: 'app-materia-prima',
-  imports: [ReactiveFormsModule, ModalComponent],
+  imports: [CurrencyPipe, ReactiveFormsModule, ModalComponent],
   templateUrl: './materia-prima.component.html'
 })
 export class MateriaPrimaComponent implements OnInit {
@@ -25,15 +26,22 @@ export class MateriaPrimaComponent implements OnInit {
 
   id: number | null = null;
 
-  readonly form = inject(FormBuilder).nonNullable.group({
-    nombre: [
+  private readonly fb = inject(FormBuilder);
+
+  readonly form = this.fb.group({
+    nombre: this.fb.nonNullable.control(
       '',
       [
         Validators.required,
         Validators.pattern(/\S/),
         Validators.maxLength(255)
       ]
-    ]
+    ),
+    precio: this.fb.control<number | null>(null, [
+      Validators.min(0),
+      Validators.max(999999999999.99),
+      Validators.pattern(/^\d+(\.\d{1,2})?$/)
+    ])
   });
 
   ngOnInit() {
@@ -54,7 +62,10 @@ export class MateriaPrimaComponent implements OnInit {
 
   abrir(m?: MateriaPrima) {
     this.id = m?.id ?? null;
-    this.form.reset({ nombre: m?.nombre ?? '' });
+    this.form.reset({
+      nombre: m?.nombre ?? '',
+      precio: m?.precio ?? null
+    });
     this.modal.set(true);
   }
 
@@ -66,10 +77,11 @@ export class MateriaPrimaComponent implements OnInit {
     this.ocupado.set(true);
 
     try {
-      await this.api.guardarMateria(
-        this.id,
-        this.form.getRawValue().nombre.trim()
-      );
+      const { nombre, precio } = this.form.getRawValue();
+      await this.api.guardarMateria(this.id, {
+        nombre: nombre.trim(),
+        precio
+      });
 
       this.modal.set(false);
       this.avisos.ok('Materia prima guardada');

@@ -61,16 +61,19 @@ export class NegocioApiService {
     );
   }
 
-  guardarMateria(id: number | null, nombre: string) {
+  guardarMateria(
+    id: number | null,
+    datos: Pick<MateriaPrima, 'nombre' | 'precio'>
+  ) {
     return firstValueFrom(
       id === null
         ? this.http.post<MateriaPrima>(
             `${this.url}/materia-prima`,
-            { nombre }
+            datos
           )
         : this.http.put<MateriaPrima>(
             `${this.url}/materia-prima/${id}`,
-            { nombre }
+            datos
           )
     );
   }
