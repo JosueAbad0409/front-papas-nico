@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import {
   FormBuilder,
@@ -46,6 +46,11 @@ export class ComprasComponent implements OnInit {
   readonly modal = signal(false);
   readonly detalle = signal<Compra | null>(null);
   readonly mostrarFecha = mostrarFecha;
+
+  // NUEVO: Total del historial de compras del período actual
+  readonly totalHistorial = computed(() =>
+    this.compras().reduce((s, c) => s + c.total, 0)
+  );
 
   id: number | null = null;
   private fechaOriginal = '';
