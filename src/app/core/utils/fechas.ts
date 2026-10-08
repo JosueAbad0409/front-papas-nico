@@ -44,7 +44,7 @@ export function mostrarFecha(iso: string, hora = true): string {
 }
 
 export function periodoActual(
-  tipo: 'dia' | 'semana' | 'mes',
+  tipo: 'dia' | 'semana' | 'mes' | 'anio',
   hoy = hoyEcuador()
 ): Periodo {
   const base = new Date(`${hoy}T12:00:00Z`);
@@ -63,6 +63,11 @@ export function periodoActual(
   if (tipo === 'mes') {
     desde.setUTCDate(1);
     hasta.setUTCMonth(base.getUTCMonth() + 1, 0);
+  }
+
+  if (tipo === 'anio') {
+    desde.setUTCMonth(0, 1);
+    hasta.setUTCMonth(11, 31);
   }
 
   return {

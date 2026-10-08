@@ -19,7 +19,7 @@
   <p class="empty" role="status">Preparando tu resumen…</p>
 } @else if (reporte(); as r) {
   <p class="period-caption">
-    {{ r.desde }} — {{ r.hasta }} · America/Guayaquil
+    {{ r.desde }} — {{ r.hasta }} · {{ r.zonaHoraria }}
   </p>
 
   <div class="stats">
@@ -108,7 +108,7 @@
   </div>
 
   <section class="panel history">
-    <h2>Resumen por día</h2>
+    <h2>{{ mensual() ? 'Resumen por mes' : 'Resumen por día' }}</h2>
 
     <div class="table-scroll">
       <table>
@@ -124,22 +124,44 @@
         </thead>
 
         <tbody>
-          @for (d of r.resumenPorDia; track d.fecha) {
+          @for (d of resumen(); track d.fecha) {
             <tr>
-              <td>{{ d.fecha }}</td>
-              <td>{{ d.operaciones }}</td>
-              <td>{{ d.unidades }}</td>
-              <td>{{ d.vendido | currency:'USD' }}</td>
-              <td>{{ d.compras | currency:'USD' }}</td>
-              <td [class.negative]="d.balance < 0">
+              <td data-label="Fecha">{{ d.fecha }}</td>
+              <td data-label="Operaciones">{{ d.operaciones }}</td>
+              <td data-label="Unidades">{{ d.unidades }}</td>
+              <td data-label="Ventas">{{ d.vendido | currency:'USD' }}</td>
+              <td data-label="Compras">{{ d.compras | currency:'USD' }}</td>
+              <td data-label="Balance" [class.negative]="d.balance < 0">
                 {{ d.balance | currency:'USD' }}
               </td>
             </tr>
           }
         </tbody>
+        <tfoot><tr>
+          <th>Total del período</th><td data-label="Operaciones">{{ r.operacionesVenta }}</td>
+          <td data-label="Unidades">{{ r.unidadesVendidas }}</td>
+          <td data-label="Ventas">{{ r.totalVendido | currency:'USD' }}</td>
+          <td data-label="Compras">{{ r.totalCompras | currency:'USD' }}</td>
+          <td data-label="Balance">{{ r.balance | currency:'USD' }}</td>
+        </tr></tfoot>
       </table>
     </div>
   </section>
+  @if (r.desde === r.hasta) {
+    <section class="panel history">
+      <h2>Lo vendido el {{ r.desde }}</h2>
+      @for (v of ventas(); track v.id) {
+        <article class="purchase-line">
+          <div class="section-heading"><h3>Venta #{{ v.id }}</h3><strong>{{ v.total | currency:'USD' }}</strong></div>
+          <p class="muted">{{ mostrarFecha(v.fechaCompra) }}</p>
+          @for (d of v.detalles; track d.id) {
+            <p>{{ d.cantidad }} × {{ d.nombreComida }}
+              · {{ d.subtotal === null ? 'Importe histórico desconocido' : (d.subtotal | currency:'USD') }}</p>
+          }
+        </article>
+      } @empty { <p class="empty">No hay ventas en este día.</p> }
+    </section>
+  }
 } @else {
   <p class="empty">
     No se pudo cargar el resumen. Puedes volver a consultar.

@@ -42,12 +42,12 @@
         <tbody>
           @for (c of compras(); track c.id) {
             <tr>
-              <td>#{{ c.id }}</td>
-              <td>{{ mostrarFecha(c.fechaCompra) }}</td>
-              <td>{{ c.detalles.length }}</td>
-              <td>{{ c.total | currency:'USD' }}</td>
+              <td data-label="Compra">#{{ c.id }}</td>
+              <td data-label="Fecha">{{ mostrarFecha(c.fechaCompra) }}</td>
+              <td data-label="Líneas">{{ c.detalles.length }}</td>
+              <td data-label="Pagado">{{ c.total | currency:'USD' }}</td>
 
-              <td>
+              <td data-label="Acciones">
                 <div class="actions">
                   <button
                     [disabled]="ocupado()"
@@ -98,8 +98,8 @@
         </label>
 
         <p class="notice">
-          Importe pagado = total de esa línea.
-          Ejemplo: 1.5 quintales de papas por $25.40 en total.
+          Por precio unitario: 2 unidades × $3 = $6. También puedes ingresar
+          el total pagado si compraste por un monto, por ejemplo $1 de tomate.
         </p>
 
         <div formArrayName="detalles">
@@ -133,9 +133,15 @@
 
               <p class="muted">
                 El precio de referencia es orientativo. Verifica la presentación
-                y registra abajo el importe total que pagaste por esta línea.
+                y escribe el precio de esta compra; puede cambiar cada vez.
               </p>
 
+              <label>¿Cómo ingresas el precio?
+                <select formControlName="modo">
+                  <option value="unitario">Precio por unidad (cantidad × precio)</option>
+                  <option value="total">Total pagado por esta línea</option>
+                </select>
+              </label>
               <div class="form-grid">
                 <label>
                   Cantidad
@@ -157,7 +163,7 @@
                 </label>
 
                 <label>
-                  Importe pagado (USD)
+                  {{ grupo.controls.modo.value === 'unitario' ? 'Precio unitario (USD)' : 'Total de la línea (USD)' }}
                   <input
                     type="number"
                     formControlName="importePagado"
@@ -166,6 +172,7 @@
                   >
                 </label>
               </div>
+              <p class="detail-total">Total de la línea: {{ subtotal(i) | currency:'USD' }}</p>
             </div>
           }
         </div>
@@ -178,7 +185,7 @@
           ＋ Agregar insumo
         </button>
 
-        @if (form.invalid && form.touched) {
+        @if ((form.invalid || !importesValidos()) && form.touched) {
           <p class="error">
             Revisa los insumos, cantidades positivas, unidades e importes.
             Cantidad: hasta 3 decimales. Dinero: hasta 2.
@@ -197,7 +204,7 @@
 
           <button
             class="primary"
-            [disabled]="form.invalid || ocupado()"
+            [disabled]="form.invalid || !importesValidos() || ocupado()"
           >
             {{ ocupado() ? 'Guardando…' : 'Guardar compra' }}
           </button>
@@ -228,10 +235,10 @@
         <tbody>
           @for (d of c.detalles; track d.id) {
             <tr>
-              <td>{{ d.nombreMateriaPrima }}</td>
-              <td>{{ d.cantidad }}</td>
-              <td>{{ d.unidad ?? 'Desconocida' }}</td>
-              <td>
+              <td data-label="Insumo">{{ d.nombreMateriaPrima }}</td>
+              <td data-label="Cantidad">{{ d.cantidad }}</td>
+              <td data-label="Unidad">{{ d.unidad ?? 'Desconocida' }}</td>
+              <td data-label="Pagado">
                 {{
                   d.importePagado === null
                     ? 'Desconocido'

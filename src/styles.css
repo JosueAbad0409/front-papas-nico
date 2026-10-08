@@ -811,3 +811,8 @@ tbody tr:last-child td { border-bottom: 0; }
     font-weight: 800; 
   }
 }
+/* Etiquetas explícitas evitan confundir columnas entre reportes en móvil. */
+@media (max-width: 620px) {
+  .table-scroll table td[data-label]::before { content: attr(data-label); }
+  .table-scroll tfoot tr:has(td[data-label]) { display: block; }
+}
