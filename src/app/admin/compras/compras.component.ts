@@ -85,6 +85,7 @@ export class ComprasComponent implements OnInit {
           Validators.maxLength(40)
         ]
       ],
+      modo: [d ? 'total' : 'unitario'],
       importePagado: [
         d?.importePagado ?? 0,
         [
@@ -202,9 +203,18 @@ export class ComprasComponent implements OnInit {
     }
   }
 
+  subtotal(i: number) {
+    const d = this.lineas.at(i).getRawValue();
+    return centavos((d.importePagado || 0) * (d.modo === 'unitario' ? d.cantidad || 0 : 1)) / 100;
+  }
+
+  importesValidos() {
+    return this.lineas.controls.every((_, i) => Number.isFinite(this.subtotal(i)) && this.subtotal(i) <= 999999999999.99);
+  }
+
   total() {
     return this.lineas.getRawValue().reduce(
-      (s, d) => s + centavos(d.importePagado || 0),
+      (s, d, i) => s + centavos(this.subtotal(i)),
       0
     ) / 100;
   }
@@ -213,6 +223,7 @@ export class ComprasComponent implements OnInit {
     if (
       this.ocupado() ||
       this.form.invalid ||
+      !this.importesValidos() ||
       !this.lineas.length
     ) {
       this.form.markAllAsTouched();
@@ -230,8 +241,10 @@ export class ComprasComponent implements OnInit {
             ? { fechaCompra: fechaApi(v.fecha) }
             : {}
         ),
-        detalles: v.detalles.map(d => ({
-          ...d,
+        detalles: v.detalles.map((d, i) => ({
+          materiaPrimaId: d.materiaPrimaId,
+          cantidad: d.cantidad,
+          importePagado: this.subtotal(i),
           unidad: d.unidad.trim()
         }))
       });
