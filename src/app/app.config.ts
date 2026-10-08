@@ -1,5 +1,7 @@
+import { provideServiceWorker } from '@angular/service-worker';
 import {
   ApplicationConfig,
+  isDevMode,
   provideBrowserGlobalErrorListeners
 } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
@@ -10,6 +12,10 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(),
-    provideRouter(routes)
+    provideRouter(routes),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000'
+    })
   ]
 };

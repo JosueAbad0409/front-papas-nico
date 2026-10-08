@@ -1,1 +1,7 @@
+@if (actualizacion.disponible()) {
+  <aside class="update-notice" role="status">
+    <span>Hay una nueva versión de Papas Nico. Guarda tus cambios antes de actualizar.</span>
+    <button type="button" (click)="actualizacion.actualizar()">Actualizar</button>
+  </aside>
+}
 <router-outlet />

@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { ActualizacionService } from './core/services/actualizacion.service';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
@@ -6,4 +7,6 @@ import { RouterOutlet } from '@angular/router';
   imports: [RouterOutlet],
   templateUrl: './app.html'
 })
-export class App {}
+export class App {
+  readonly actualizacion = inject(ActualizacionService);
+}

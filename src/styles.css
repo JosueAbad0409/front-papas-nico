@@ -816,3 +816,18 @@ tbody tr:last-child td { border-bottom: 0; }
   .table-scroll table td[data-label]::before { content: attr(data-label); }
   .table-scroll tfoot tr:has(td[data-label]) { display: block; }
 }
+
+.update-notice {
+  position: sticky;
+  top: 0;
+  z-index: 1100;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  background: #fff2cc;
+  color: #29271f;
+  font-size: 13px;
+}
