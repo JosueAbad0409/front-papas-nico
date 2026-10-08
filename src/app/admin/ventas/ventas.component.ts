@@ -76,6 +76,11 @@ export class VentasComponent implements OnInit {
     ) / 100
   );
 
+  // NUEVO: Total del historial de ventas del período actual
+  readonly totalHistorial = computed(() =>
+    this.ventas().reduce((s, v) => s + v.total, 0)
+  );
+
   readonly mostrarFecha = mostrarFecha;
 
   fecha = ahoraEcuador();

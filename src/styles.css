@@ -134,8 +134,8 @@ hr {
   padding: 0 6px;
 }
 .brand img {
-  width: 42px;
-  height: 42px;
+  width: 90px;
+  height: 90px;
   object-fit: contain;
   flex-shrink: 0;
 }
@@ -691,11 +691,123 @@ tbody tr:last-child td { border-bottom: 0; }
   }
 
   .zone { font-size: 11px; }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  * {
-    transition: none !important;
-    scroll-behavior: auto !important;
+  /* =========================================
+     📱 TABLAS RESPONSIVAS (DISEÑO TARJETA)
+     ========================================= */
+  
+  .table-scroll table,
+  .table-scroll thead,
+  .table-scroll tbody,
+  .table-scroll tfoot,
+  .table-scroll th,
+  .table-scroll td,
+  .table-scroll tr {
+    display: block;
+  }
+
+  /* Ocultamos las cabeceras tradicionales */
+  .table-scroll thead {
+    display: none; 
+  }
+
+  /* Cada fila es ahora una tarjeta */
+  .table-scroll tbody tr {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    padding: 8px 16px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  }
+
+  /* Cada celda es una línea dentro de la tarjeta */
+  .table-scroll td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--line);
+    text-align: right;
+    white-space: normal;
+    gap: 10px;
+  }
+
+  .table-scroll td:last-child {
+    border-bottom: 0;
+  }
+
+  /* Títulos generados dinámicamente a la izquierda */
+  .table-scroll td::before {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  /* Excepción: Mensaje de "No hay ventas" */
+  .table-scroll td[colspan] { 
+    justify-content: center; 
+    text-align: center; 
+    color: var(--muted); 
+    padding: 20px; 
+    border: 0; 
+  }
+  .table-scroll td[colspan]::before { content: none !important; }
+
+  /* Etiquetas para la tabla principal (Historial) */
+  .history table tbody td:nth-child(1)::before { content: "Operación"; }
+  .history table tbody td:nth-child(2)::before { content: "Fecha"; }
+  .history table tbody td:nth-child(3)::before { content: "Unidades"; }
+  .history table tbody td:nth-child(4)::before { content: "Total"; }
+  .history table tbody td:nth-child(5)::before { content: "Acciones"; }
+
+  /* Etiquetas para la tabla dentro del Modal (Detalle de venta) */
+  .modal table tbody td:nth-child(1)::before { content: "Comida"; }
+  .modal table tbody td:nth-child(2)::before { content: "Cantidad"; }
+  .modal table tbody td:nth-child(3)::before { content: "Precio"; }
+  .modal table tbody td:nth-child(4)::before { content: "Subtotal"; }
+
+  /* 
+     Ajuste especial para el Footer del Gran Total 
+  */
+  .table-scroll tfoot tr {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f4f0e5;
+    border: 1px solid #e1dbcc;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-top: 10px;
+  }
+
+  .table-scroll tfoot th { 
+    display: none; 
+    border: 0; 
+    padding: 0; 
+    background: transparent; 
+  }
+
+  .table-scroll tfoot th:nth-child(1),
+  .table-scroll tfoot th:nth-child(2) {
+    display: block;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  .table-scroll tfoot th:nth-child(1) { 
+    color: var(--muted); 
+    font-size: 13px; 
+    font-weight: 600; 
+  }
+  
+  .table-scroll tfoot th:nth-child(2) { 
+    color: var(--accent); 
+    font-size: 18px; 
+    font-weight: 800; 
   }
 }
